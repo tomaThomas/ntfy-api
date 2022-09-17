@@ -1,0 +1,15 @@
+[package]
+name = "ntfy-api"
+version = "0.1.0"
+edition = "2021"
+authors = ["tomaThomas <tomathomas@mailbox.org>"]
+license = "MIT"
+description = "Rust bindings for ntfy API"
+repository = "https://github.com/tomaThomas/ntfy-api"
+keywords = ["ntfy", "api", "wrapper", "bindings"]
+categories = ["api-bindings"]
+readme = "README.md"
+
+[dependencies]
+reqwest = {version = "0.11", features = ["json"]}
+ntfy-types = "0.1"
