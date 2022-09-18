@@ -13,32 +13,31 @@ Features implemented:
  `Cargo.toml`:
 ```toml
 [dependencies]
-ntfy-types = "^0.1"
-ntfy-api = "^0.1"
+tokio = { version = "1", features = ["full"] }
+ntfy-api = "^0.1.1"
 ```
 
  ```rust
-use ntfy_api::NtfyApi;
-use ntfy_types::NtfyMsg;
+use ntfy_api::{NtfyApi, NtfyMsg};
 
 #[tokio::main]
-fn main() {
-   let api = NtfyApi::default();
-   let ntfy_msg = NtfyMsg {
-       topic: String::from("alerts"),
-       message: Some(String::from("Message body")),
-       title: Some(String::from("New Message")),
-       tags: None,
-       priority: None,
-       attach: None,
-       filename: None,
-       click: None,
-       action: None,
-   };
-   match api.post().await {
-    Ok(_) => println!("Message sent"),
-    Err(_) => println!("Error sending message"),
-   }
+async fn main() {
+    let api = NtfyApi::default();
+    let ntfy_msg = NtfyMsg {
+        topic: String::from("alerts"),
+        message: Some(String::from("Message body")),
+        title: Some(String::from("New Message")),
+        tags: None,
+        priority: None,
+        attach: None,
+        filename: None,
+        click: None,
+        action: None,
+    };
+    match api.post(&ntfy_msg).await {
+        Ok(_) => println!("Message sent"),
+        Err(_) => println!("Error sending message"),
+    }
 }
  ```
 

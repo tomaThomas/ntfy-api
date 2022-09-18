@@ -1,4 +1,7 @@
-use ntfy_types::{NtfyErrorResponse, NtfyMsg, NtfyResponse};
+pub use ntfy_types::{
+    NtfyAction, NtfyActionType, NtfyAttachment, NtfyErrorResponse, NtfyMsg, NtfyPriority,
+    NtfyResponse,
+};
 use reqwest::{Client, Method, RequestBuilder};
 
 #[derive(Clone, Debug)]
