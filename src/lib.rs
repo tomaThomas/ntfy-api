@@ -2,7 +2,7 @@ pub use ntfy_types::{
     NtfyAction, NtfyActionType, NtfyAttachment, NtfyErrorResponse, NtfyMsg, NtfyPriority,
     NtfyResponse,
 };
-use reqwest::{Client, Method, RequestBuilder};
+use reqwest::{Client, Method, RequestBuilder, Response};
 
 #[derive(Clone, Debug)]
 pub struct NtfySettings {
@@ -37,12 +37,64 @@ impl NtfyApi {
         }
     }
 
+    // Send a message using JSON
     pub async fn post(&self, body: &NtfyMsg) -> Result<NtfyResponse, NtfyError> {
-        let response = self
-            .request_builder(Method::POST, &self.settings.host)
-            .json(&body)
+        Self::respond(
+            self.request_builder(Method::POST, &self.settings.host)
+                .json(&body)
+                .send()
+                .await?,
+        )
+        .await
+    }
+
+    /// Send a message to a topic
+    pub async fn post_to_topic(
+        &self,
+        topic: &str,
+        message: &str,
+    ) -> Result<NtfyResponse, NtfyError> {
+        // TODO: options using headers
+        Self::respond(
+            self.request_builder(Method::POST, &format!("{}{}", &self.settings.host, topic))
+                .body(message.to_owned())
+                .send()
+                .await?,
+        )
+        .await
+    }
+
+    /// Sends a 'triggered' message to a topic by sending a GET request to the webhook endpoint
+    pub async fn trigger(&self, topic: &str) -> Result<NtfyResponse, NtfyError> {
+        Self::respond(
+            self.request_builder(
+                Method::GET,
+                &format!("{}{}/publish", &self.settings.host, topic),
+            )
             .send()
-            .await?;
+            .await?,
+        )
+        .await
+    }
+
+    /// Send an attachment to a topic
+    pub async fn attachment(
+        &self,
+        topic: &str,
+        filename: &str,
+        data: Vec<u8>,
+    ) -> Result<NtfyResponse, NtfyError> {
+        Self::respond(
+            self.request_builder(Method::PUT, &format!("{}{}", &self.settings.host, topic))
+                .header("Filename", filename)
+                .body(data)
+                .send()
+                .await?,
+        )
+        .await
+    }
+
+    async fn respond(response: Response) -> Result<NtfyResponse, NtfyError> {
         if response.status().is_success() {
             Ok(response.json::<NtfyResponse>().await?)
         } else {

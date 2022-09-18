@@ -5,7 +5,7 @@ It uses [reqwest](https://github.com/seanmonstar/reqwest) as HTTP client.
 
 Features implemented:
  - [X] Publish as JSON
- - [ ] Post directly to topic
+ - [ ] Post directly to topic using headers
  - [ ] File attachments
  - [ ] Websockets
 
