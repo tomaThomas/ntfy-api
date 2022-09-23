@@ -10,10 +10,30 @@ pub struct NtfySettings {
     pub authorization: Option<NtfyAuthorization>,
 }
 
+impl NtfySettings {
+    pub fn new(host: String) -> NtfySettings {
+        NtfySettings {
+            host,
+            authorization: None,
+        }
+    }
+
+    pub fn auth(mut self, auth: NtfyAuthorization) -> NtfySettings {
+        self.authorization = Some(auth);
+        self
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct NtfyAuthorization {
     pub username: String,
     pub password: String,
+}
+
+impl NtfyAuthorization {
+    pub fn new(username: String, password: String) -> NtfyAuthorization {
+        NtfyAuthorization { username, password }
+    }
 }
 
 #[derive(Clone, Debug)]

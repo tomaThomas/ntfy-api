@@ -23,17 +23,7 @@ use ntfy_api::{NtfyApi, NtfyMsg};
 #[tokio::main]
 async fn main() {
     let api = NtfyApi::default();
-    let ntfy_msg = NtfyMsg {
-        topic: String::from("alerts"),
-        message: Some(String::from("Message body")),
-        title: Some(String::from("New Message")),
-        tags: None,
-        priority: None,
-        attach: None,
-        filename: None,
-        click: None,
-        action: None,
-    };
+    let ntfy_msg = NtfyMsg::builder("topic").message("Hello world!").build();
     match api.post(&ntfy_msg).await {
         Ok(_) => println!("Message sent"),
         Err(_) => println!("Error sending message"),
@@ -44,10 +34,7 @@ async fn main() {
 ### Configuration
  ```rust
 let api = NtfyApi::new(NtfySettings {
-    host: String::from("https://ntfysh/"),
-    authorization: Some(NtfyAuthorization {
-        username: String::from("username"),
-        password: String::from("password"),
-    }),
+    host: String::from("https://ntfy.sh/"),
+    authorization: Some(NtfyAuthorization::new(String::from("username"), String::from("password"))),
 });
  ```
