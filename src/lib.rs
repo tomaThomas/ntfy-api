@@ -1,3 +1,4 @@
+use ntfy_types;
 pub use ntfy_types::{
     NtfyAction, NtfyActionType, NtfyAttachment, NtfyErrorResponse, NtfyMsg, NtfyPriority,
     NtfyResponse,
@@ -57,10 +58,63 @@ impl NtfyApi {
         }
     }
 
-    pub async fn post(&self, body: &NtfyMsg) -> Result<NtfyResponse, NtfyError> {
+    pub async fn post_json(&self, body: &NtfyMsg) -> Result<NtfyResponse, NtfyError> {
         let response = self
             .request_builder(Method::POST, &self.settings.host)
             .json(&body)
+            .send()
+            .await?;
+        if response.status().is_success() {
+            Ok(response.json::<NtfyResponse>().await?)
+        } else {
+            Err(NtfyError::ApiError(
+                response.json::<NtfyErrorResponse>().await?,
+            ))
+        }
+    }
+
+    pub async fn post(&self, msg: &NtfyMsg) -> Result<NtfyResponse, NtfyError> {
+        let mut req = self.request_builder(
+            Method::POST,
+            &format!("{}{}", self.settings.host, msg.topic),
+        );
+        if let Some(title) = &msg.title {
+            req = req.header("X-Title", title);
+        }
+        if let Some(priority) = msg.priority {
+            req = req.header("X-Priority", format!("{}", u8::from(priority)));
+        }
+        if let Some(tags) = &msg.tags {
+            req = req.header("X-Tags", tags.join(","));
+        }
+        if let Some(delay) = &msg.delay {
+            req = req.header("X-Delay", delay);
+        }
+        if let Some(actions) = &msg.actions {
+            let mut action_header = String::new();
+            for action in actions {
+                action_header.push_str("action=");
+                action_header.push_str(action.action.value());
+                action_header.push_str(",label=");
+                action_header.push_str(&action.label);
+                action_header.push_str(",url=");
+                action_header.push_str(&action.url);
+                if let Some(clear) = &action.clear {
+                    action_header.push_str(",clear=");
+                    action_header.push_str(&format!("{}", clear));
+                }
+                action_header.push(';');
+            }
+            req = req.header("X-Actions", action_header);
+        }
+        if let Some(attach) = &msg.attach {
+            req = req.header("X-Attach", attach);
+        }
+        if let Some(email) = &msg.email {
+            req = req.header("X-Email", email);
+        }
+        let response = req
+            .body(msg.message.clone().unwrap_or_default())
             .send()
             .await?;
         if response.status().is_success() {
